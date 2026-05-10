@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jerryMouse.mapper.StudentMapper">
+
+    <insert id="insert" parameterType="com.jerryMouse.pojo.Student" useGeneratedKeys="true" keyProperty="id">
+        insert into student(
+            name, no, gender, phone, id_card, is_boarding, address, grade_level, enrollment_date,
+            clazz_id, violation_count, violation_score, create_time, update_time
+        )
+        values(
+            #{name}, #{no}, #{gender}, #{phone}, #{idCard}, #{isBoarding}, #{address}, #{gradeLevel},
+            #{enrollmentDate}, #{clazzId}, #{violationCount}, #{violationScore}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <update id="updateById">
+        update student
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="no != null and no != ''">no = #{no},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            <if test="idCard != null and idCard != ''">id_card = #{idCard},</if>
+            <if test="isBoarding != null">is_boarding = #{isBoarding},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="gradeLevel != null">grade_level = #{gradeLevel},</if>
+            <if test="enrollmentDate != null">enrollment_date = #{enrollmentDate},</if>
+            <if test="clazzId != null">clazz_id = #{clazzId},</if>
+            <if test="violationCount != null">violation_count = #{violationCount},</if>
+            <if test="violationScore != null">violation_score = #{violationScore},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteByIds">
+        delete from student where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="page" resultType="com.jerryMouse.pojo.Student">
+        select
+            s.id,
+            s.name,
+            s.no,
+            s.gender,
+            s.phone,
+            s.id_card as idCard,
+            s.is_boarding as isBoarding,
+            s.address,
+            s.grade_level as gradeLevel,
+            s.enrollment_date as enrollmentDate,
+            s.clazz_id as clazzId,
+            s.violation_count as violationCount,
+            s.violation_score as violationScore,
+            s.create_time as createTime,
+            s.update_time as updateTime,
+            c.name as clazzName
+        from student s
+        left join clazz c on s.clazz_id = c.id
+        <where>
+            <if test="name != null and name != ''">
+                and s.name like concat('%', #{name}, '%')
+            </if>
+            <if test="gradeLevel != null">
+                and s.grade_level = #{gradeLevel}
+            </if>
+            <if test="clazzId != null">
+                and s.clazz_id = #{clazzId}
+            </if>
+        </where>
+        order by s.update_time desc, s.id desc
+    </select>
+
+    <select id="getStudentStageStat" resultType="com.jerryMouse.pojo.StudentStageStat">
+        select
+            case grade_level
+                when 1 then '小学'
+                when 2 then '初中'
+                when 3 then '高中'
+                else '其他'
+            end as name,
+            count(*) as value
+        from student
+        group by grade_level
+        order by grade_level
+    </select>
+</mapper>
