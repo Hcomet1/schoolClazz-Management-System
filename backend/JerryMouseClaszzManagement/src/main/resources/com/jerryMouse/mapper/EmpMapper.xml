@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jerryMouse.mapper.EmpMapper">
+
+    <resultMap id="empResultMap" type="com.jerryMouse.pojo.Emp">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="name" column="name"/>
+        <result property="gender" column="gender"/>
+        <result property="phone" column="phone"/>
+        <result property="job" column="job"/>
+        <result property="salary" column="salary"/>
+        <result property="image" column="image"/>
+        <result property="entryDate" column="entryDate"/>
+        <result property="createTime" column="createTime"/>
+        <result property="updateTime" column="updateTime"/>
+        <collection property="exprList" ofType="com.jerryMouse.pojo.EmpExpr">
+            <id property="id" column="expr_id"/>
+            <result property="empId" column="expr_empId"/>
+            <result property="begin" column="expr_begin"/>
+            <result property="end" column="expr_end"/>
+            <result property="schoolName" column="expr_schoolName"/>
+            <result property="job" column="expr_job"/>
+        </collection>
+    </resultMap>
+
+    <select id="list" resultType="com.jerryMouse.pojo.Emp">
+        select
+            id,
+            username,
+            password,
+            name,
+            gender,
+            phone,
+            job,
+            salary,
+            image,
+            entry_date as entryDate,
+            create_time as createTime,
+            update_time as updateTime
+        from emp
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="gender != null">
+                and gender = #{gender}
+            </if>
+            <if test="begin != null">
+                and entry_date &gt;= #{begin}
+            </if>
+            <if test="end != null">
+                and entry_date &lt;= #{end}
+            </if>
+        </where>
+        order by update_time desc
+    </select>
+
+    <select id="selectById" resultMap="empResultMap">
+        select
+            e.id,
+            e.username,
+            e.password,
+            e.name,
+            e.gender,
+            e.phone,
+            e.job,
+            e.salary,
+            e.image,
+            e.entry_date as entryDate,
+            e.create_time as createTime,
+            e.update_time as updateTime,
+            ee.id as expr_id,
+            ee.emp_id as expr_empId,
+            ee.begin as expr_begin,
+            ee.end as expr_end,
+            ee.school_name as expr_schoolName,
+            ee.job as expr_job
+        from emp e
+        left join emp_expr ee on e.id = ee.emp_id
+        where e.id = #{id}
+        order by ee.begin desc, ee.id desc
+    </select>
+
+    <update id="updateById">
+        update emp
+        <set>
+            <if test="username != null and username != ''">username = #{username},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            <if test="job != null">job = #{job},</if>
+            <if test="salary != null">salary = #{salary},</if>
+            <if test="image != null and image != ''">image = #{image},</if>
+            <if test="entryDate != null">entry_date = #{entryDate},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteByIds">
+        delete from emp where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="countEmpJob" resultType="java.util.Map">
+        select
+            case job
+                when 1 then '班主任'
+                when 2 then '任课教师'
+                when 3 then '年级主任'
+                when 4 then '学科组长'
+                when 5 then '副校长'
+                when 6 then '校长'
+                else '其他'
+            end as pos,
+            count(*) as num
+        from emp
+        group by job
+        order by job
+    </select>
+
+    <select id="countEmpGender" resultType="java.util.Map">
+        select
+            case gender
+                when 1 then '男教职工'
+                when 2 then '女教职工'
+                else '未说明'
+            end as name,
+            count(*) as value
+        from emp
+        group by gender
+        order by gender
+    </select>
+
+    <select id="findById" resultType="com.jerryMouse.pojo.Emp">
+        select
+            id,
+            username,
+            password,
+            name,
+            gender,
+            phone,
+            job,
+            salary,
+            image,
+            entry_date as entryDate,
+            create_time as createTime,
+            update_time as updateTime
+        from emp
+        where id = #{id}
+    </select>
+
+    <update id="updatePassword">
+        update emp
+        set password = #{password}
+        where id = #{id}
+    </update>
+</mapper>
